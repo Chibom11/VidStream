@@ -1,6 +1,8 @@
 import { Router } from "express";
-const route=Router();
 import uploadFileToS3 from "../controllers/upload.controller.js";
-route.post('/upload',uploadFileToS3)
+import multer from 'multer'
+const route=Router();
+const upload=multer()
+route.post('/upload',upload.single('file'),uploadFileToS3)
 
 export default route

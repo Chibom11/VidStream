@@ -15,27 +15,17 @@ const s3 = new S3Client({
 export const uploadFileToS3 = async (req, res) => {
 
   try {
-    console.log("Reached the upload controller")
-    const filePath =
-      "C:/Users/shiva/yt/upload-service/assets/IMG_20260526_192612.jpg";
-
-    // check if file exists
-    if (!fs.existsSync(filePath)) {
-      console.log("File does not exist:", filePath);
-      return res.status(400).json({
-        success: false,
-        message: "File not found",
-      });
+    const file=req.file;
+    console.log("Reqfile   ",req.file)
+    if(!file){
+      res.status(500).send("No file found")
     }
-
-    // read file
-    const fileContent = fs.readFileSync(filePath);
 
     // upload params
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: "s3upload.png", // file name in s3
-      Body: fileContent,
+      Key: file.originalname, // file name in s3
+      Body: file.buffer,
       ContentType: "image/png",
     };
 
