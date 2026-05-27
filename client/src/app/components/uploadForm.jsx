@@ -13,6 +13,7 @@ const UploadForm = () => {
 
         const formdata = new FormData();
         formdata.append('file', selectedFile);
+        console.log(formdata)
 
         try {
 
