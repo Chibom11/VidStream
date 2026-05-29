@@ -7,6 +7,6 @@ app.use(cors(
     {allowedHeaders:["*"],
      origin:"*"}))
 app.use(express.json())
-app.use('/api',uploadRoute)
-app.use('/',(req,res)=>{res.send("Hello from upload server")})
+app.use('/upload',uploadRoute)
+app.use('/publish',kafkaPublishRouter)
 app.listen(3030,()=>{console.log("Server running on port 3030")})
