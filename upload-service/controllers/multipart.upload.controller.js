@@ -1,137 +1,124 @@
 import {
   S3Client,
   CreateMultipartUploadCommand,
-  UploadPartCommand,
-  CompleteMultipartUploadCommand,
-  AbortMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 
-import fs from "fs";
+const s3 = new S3Client({
+  region: "ap-south-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
 
-const multipartUploadFileToS3 = async (req, res) => {
-  console.log("Upload req received");
-
-  const filePath =
-    "C:/Users/shiva/Downloads/013) Day 13 - Chunking, Multipart upload.mp4";
-
-  if (!fs.existsSync(filePath)) {
-    console.log("File does not exist:", filePath);
-    return res.status(400).send("File does not exist");
-  }
-
-  const s3 = new S3Client({
-    region: "ap-south-1",
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-  });
-
-  const uploadParams = {
-    Bucket: process.env.AWS_BUCKET_NAME,
-    Key: `videos/${Date.now()}.mp4`,
-    ContentType: "video/mp4",
-  };
-
-  let uploadId;
-
+export const initializeUpload = async (req, res) => {
   try {
-    console.log("Creating Multipart Upload...");
+    console.log("Initializing Upload");
 
-    const multipartRes = await s3.send(
-      new CreateMultipartUploadCommand(uploadParams)
+    const { filename } = req.body;
+
+    const createParams = {
+      Bucket: process.env.AWS_BUCKET,
+      Key: filename,
+      ContentType: "video/mp4",
+    };
+
+    const multipartParams = await s3.send(
+      new CreateMultipartUploadCommand(createParams)
     );
 
-    uploadId = multipartRes.UploadId;
+    const uploadId = multipartParams.UploadId;
 
-    console.log("UploadId:", uploadId);
+    console.log("multipartParams", multipartParams);
 
-    const fileSize = fs.statSync(filePath).size;
+    return res.status(200).json({
+      uploadId,
+    });
+  } catch (err) {
+    console.error("Error initializing upload:", err);
+    return res.status(500).send("Upload initialization failed");
+  }
+};
 
-    const chunkSize = 5 * 1024 * 1024; // 5MB minimum for multipart
-    const numParts = Math.ceil(fileSize / chunkSize);
+import { UploadPartCommand } from "@aws-sdk/client-s3";
 
-    console.log("File Size:", fileSize);
-    console.log("Number of Parts:", numParts);
+export const uploadChunk = async (req, res) => {
+  try {
+    console.log("Uploading Chunk");
 
-    const uploadedETags = [];
+    const { filename, chunkIndex, uploadId } = req.body;
 
-    for (let i = 0; i < numParts; i++) {
-      const start = i * chunkSize;
-      const end = Math.min(start + chunkSize, fileSize);
+    const partParams = {
+      Bucket: process.env.AWS_BUCKET,
+      Key: filename,
+      UploadId: uploadId,
+      PartNumber: parseInt(chunkIndex) + 1,
+      Body: req.file.buffer,
+    };
 
-      console.log(
-        `Uploading part ${i + 1}/${numParts} (${start}-${end})`
-      );
+    const data = await s3.send(
+      new UploadPartCommand(partParams)
+    );
 
-      const uploadPartResponse = await s3.send(
-        new UploadPartCommand({
-          Bucket: uploadParams.Bucket,
-          Key: uploadParams.Key,
-          UploadId: uploadId,
-          PartNumber: i + 1,
-          Body: fs.createReadStream(filePath, {
-            start,
-            end: end - 1,
-          }),
-        })
-      );
+    console.log("data", data);
 
-      console.log(
-        `Part ${i + 1} uploaded: ${uploadPartResponse.ETag}`
-      );
+    return res.status(200).json({
+      success: true,
+      ETag: data.ETag,
+      PartNumber: parseInt(chunkIndex) + 1,
+    });
+  } catch (err) {
+    console.error("Error uploading chunk:", err);
+    return res.status(500).send("Chunk could not be uploaded");
+  }
+};
 
-      uploadedETags.push({
-        PartNumber: i + 1,
-        ETag: uploadPartResponse.ETag,
-      });
-    }
+import {
+  ListPartsCommand,
+  CompleteMultipartUploadCommand,
+} from "@aws-sdk/client-s3";
 
-    console.log("Completing Multipart Upload...");
+export const completeUpload = async (req, res) => {
+  try {
+    console.log("Completing Upload");
 
-    const completeResponse = await s3.send(
+    const { filename, uploadId } = req.body;
+
+    const completeParams = {
+      Bucket: process.env.AWS_BUCKET,
+      Key: filename,
+      UploadId: uploadId,
+    };
+
+    const data = await s3.send(
+      new ListPartsCommand(completeParams)
+    );
+
+    const parts = data.Parts.map((part) => ({
+      ETag: part.ETag,
+      PartNumber: part.PartNumber,
+    }));
+
+    const uploadResult = await s3.send(
       new CompleteMultipartUploadCommand({
-        Bucket: uploadParams.Bucket,
-        Key: uploadParams.Key,
-        UploadId: uploadId,
+        ...completeParams,
         MultipartUpload: {
-          Parts: uploadedETags,
+          Parts: parts,
         },
       })
     );
 
-    console.log("Upload Complete");
-    console.log(completeResponse);
+    console.log("uploadResult", uploadResult);
 
     return res.status(200).json({
-      success: true,
-      location: completeResponse.Location,
-      key: uploadParams.Key,
+      message: "Uploaded successfully!",
+      location: uploadResult.Location,
     });
   } catch (error) {
-    console.error("Multipart Upload Error:", error);
+    console.log("Error completing upload:", error);
 
-    if (uploadId) {
-      try {
-        await s3.send(
-          new AbortMultipartUploadCommand({
-            Bucket: uploadParams.Bucket,
-            Key: uploadParams.Key,
-            UploadId: uploadId,
-          })
-        );
-
-        console.log("Multipart upload aborted");
-      } catch (abortError) {
-        console.error("Abort Error:", abortError);
-      }
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(500).send(
+      "Upload completion failed"
+    );
   }
 };
-
-export default multipartUploadFileToS3;
