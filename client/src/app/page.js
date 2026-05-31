@@ -5,8 +5,8 @@ import AuthPage from "./pages/auth.jsx";
 export default function Home() {
   return (
       <div>
-        {/* <UploadForm/> */}
-        <AuthPage/>
+        <UploadForm/>
+        {/* <AuthPage/> */}
       </div>
     
   );

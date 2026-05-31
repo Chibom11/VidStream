@@ -11,7 +11,7 @@ class KafkaConfig {
       clientId: "uploader",
       brokers: [process.env.KAFKA_BROKER],
       ssl: {
-        ca: [fs.readFileSync(path.resolve("./ca.pem"), "utf-8")],
+        ca: [fs.readFileSync(path.resolve("C:/Users/shiva/yt/upload-service/kafka/ca.pem"), "utf-8")],
       },
       sasl: {
         username: process.env.KAFKA_USERNAME,
@@ -36,6 +36,8 @@ class KafkaConfig {
         topic: topic,
         messages: messages,
       });
+
+      return result;
     } catch (error) {
       console.log(error);
     } finally {

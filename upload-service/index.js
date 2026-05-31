@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import uploadRoute from './routes/upload.route.js'
+import kafkaPublishRouter from './routes/kafka.publisher.route.js'
 
 const app=express()
 app.use(cors(

@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import KafkaConfig from './kafka/kafka'
+import KafkaConfig from './kafka/kafka.js'
 
 const app=express()
 app.use(cors(
