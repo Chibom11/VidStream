@@ -11,7 +11,13 @@ const router = express.Router();
 router.post("/initialize",upload.none(),initializeUpload);
 
 // Route for uploading individual chunks
-router.post("/",upload.single("chunk"),uploadChunk);
+router.post("/",upload.fields([
+  { name: "chunk", maxCount: 1 },
+  { name: "filename", maxCount: 1 },
+  { name: "chunkIndex", maxCount: 1 },
+  { name: "uploadId", maxCount: 1 },
+  { name: "totalchunks", maxCount: 1 }
+]),uploadChunk);
 
 // Route for completing the upload
 router.post("/complete",completeUpload);

@@ -2,7 +2,9 @@ import {
   S3Client,
   CreateMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
+import dotenv from 'dotenv'
 
+dotenv.config();
 const s3 = new S3Client({
   region: "ap-south-1",
   credentials: {
@@ -16,6 +18,7 @@ export const initializeUpload = async (req, res) => {
     console.log("Initializing Upload");
 
     const { filename } = req.body;
+    console.log(filename)
 
     const createParams = {
       Bucket: process.env.AWS_BUCKET,
@@ -53,7 +56,7 @@ export const uploadChunk = async (req, res) => {
       Key: filename,
       UploadId: uploadId,
       PartNumber: parseInt(chunkIndex) + 1,
-      Body: req.file.buffer,
+      Body: req.files.chunk[0].buffer,
     };
 
     const data = await s3.send(
@@ -97,6 +100,7 @@ export const completeUpload = async (req, res) => {
     const parts = data.Parts.map((part) => ({
       ETag: part.ETag,
       PartNumber: part.PartNumber,
+      size: part.Size
     }));
 
     const uploadResult = await s3.send(
@@ -107,6 +111,13 @@ export const completeUpload = async (req, res) => {
         },
       })
     );
+
+    console.log(
+  data.Parts.map(p => ({
+    part: p.PartNumber,
+    size: p.Size
+  }))
+);
 
     console.log("uploadResult", uploadResult);
 
