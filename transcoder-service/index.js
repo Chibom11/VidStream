@@ -8,7 +8,4 @@ app.use(cors(
      origin:"*"}))
 app.use(express.json())
 
-const kafkaconfig=new KafkaConfig();
-
-kafkaconfig.consume("transcode",(value)=>{console.log("Got data from kafka",value)})
-app.listen(3031,()=>{console.log("Server running on port 3031")})
+app.listen(3032,()=>{console.log("Server running on port 3032")})

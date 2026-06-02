@@ -34,6 +34,7 @@ const UploadForm = () => {
                 const totalChunks=totalsize/chunksize;
 
                 let start=0;
+                let uploadedPromises=[];
                 for(let i=0;i<totalChunks;i++){
                     const currentChunk=selectedFile.slice(start,start+chunksize);
                     start+=chunksize;
@@ -43,9 +44,15 @@ const UploadForm = () => {
                     chunkFormdata.append('totalchunks',totalChunks)
                     chunkFormdata.append('chunkIndex',i);
                     chunkFormdata.append('uploadId',uploadId);
-                    await axios.post('http://localhost:3030/upload',chunkFormdata,{headers:{'Content-Type':'multipart/form-data'}})
-                       }
-                        const completeRes=await axios.post('http://localhost:3030/upload/complete',{
+
+                    /////////////////////////   chunking   ////////////////////////
+                     const uploadedPromise=axios.post('http://localhost:3030/upload',chunkFormdata,{headers:{'Content-Type':'multipart/form-data'}})
+                    uploadedPromises.push(uploadedPromise)       
+                }
+                await Promise.all(uploadedPromises);
+
+                    ///////////////////////////   completion   //////////////////////////
+                        const completeRes= await axios.post('http://localhost:3030/upload/complete',{
                             filename:selectedFile.name,
                             totalChunks:totalChunks,
                             uploadId:uploadId
