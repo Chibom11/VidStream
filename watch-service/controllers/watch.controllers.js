@@ -27,3 +27,22 @@ export async function generateSignedUrl(videoKey) {
 
   return signedUrl;
 }
+
+const watchVideo = async (req, res) => {
+  try {
+    // Key of the video file in S3
+    const videoKey = req.query.key;
+
+    const signedUrl = await generateSignedUrl(videoKey);
+
+    res.json({ signedUrl });
+  } catch (err) {
+    console.error("Error generating pre-signed URL:", err);
+
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+};
+
+export default watchVideo;
