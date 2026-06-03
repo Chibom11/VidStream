@@ -1,4 +1,5 @@
-import {PrismaClient} from '@prisma/client'
+import { PrismaClient } from "../generated/prisma/client.ts";
+
 const prisma=new PrismaClient()
 
 export async function addVideoDetailsToDB(title,description,author,url){

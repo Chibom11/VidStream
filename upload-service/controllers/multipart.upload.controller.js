@@ -3,6 +3,12 @@ import {
   CreateMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 import dotenv from 'dotenv'
+import {
+  ListPartsCommand,
+  CompleteMultipartUploadCommand,
+} from "@aws-sdk/client-s3";
+import { UploadPartCommand } from "@aws-sdk/client-s3";
+import { addVideoDetailsToDB } from "../db/db.js";
 
 dotenv.config();
 const s3 = new S3Client({
@@ -43,7 +49,6 @@ export const initializeUpload = async (req, res) => {
   }
 };
 
-import { UploadPartCommand } from "@aws-sdk/client-s3";
 
 export const uploadChunk = async (req, res) => {
   try {
@@ -76,10 +81,6 @@ export const uploadChunk = async (req, res) => {
   }
 };
 
-import {
-  ListPartsCommand,
-  CompleteMultipartUploadCommand,
-} from "@aws-sdk/client-s3";
 
 export const completeUpload = async (req, res) => {
   try {
@@ -133,3 +134,17 @@ export const completeUpload = async (req, res) => {
     );
   }
 };
+
+export const uploadToDb=async (req,res)=>{
+  console.log("Adding details to DB");
+  try {
+    const videoDetails=req.body
+    await addVideoDetailsToDB(videoDetails.title,videoDetails.description,videoDetails.author,videoDetails.url)
+    return res.status(200).send("Success")
+    
+  } catch (error) {
+    console.log("Error adding to DB");
+    return res.status(400).send(error);
+    
+  }
+}
