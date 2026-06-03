@@ -3,6 +3,6 @@ import watchVideo from "../controllers/watch.controllers.js";
 
 const router = express.Router();
 
-router.get("/watch", watchVideo);
+router.get("/", watchVideo);
 
 export default router;
