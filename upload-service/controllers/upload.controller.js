@@ -1,5 +1,5 @@
 import fs from "fs";
-import {S3Client,PutObjectCommand} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from 'dotenv'
 
 dotenv.config();
@@ -15,9 +15,9 @@ const s3 = new S3Client({
 export const uploadFileToS3 = async (req, res) => {
 
   try {
-    const file=req.file;
-    console.log("Reqfile   ",req.file)
-    if(!file){
+    const file = req.file;
+    console.log("Reqfile   ", req.file)
+    if (!file) {
       res.status(500).send("No file found")
     }
 

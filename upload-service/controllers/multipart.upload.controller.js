@@ -86,7 +86,7 @@ export const completeUpload = async (req, res) => {
   try {
     console.log("Completing Upload");
 
-    const { filename, uploadId } = req.body;
+    const { filename, uploadId,author,description,title } = req.body;
 
     const completeParams = {
       Bucket: process.env.AWS_BUCKET,
@@ -114,13 +114,14 @@ export const completeUpload = async (req, res) => {
     );
 
     console.log(
-  data.Parts.map(p => ({
-    part: p.PartNumber,
-    size: p.Size
-  }))
-);
+      data.Parts.map(p => ({
+        part: p.PartNumber,
+        size: p.Size
+      }))
+    );
 
     console.log("uploadResult", uploadResult);
+    await addVideoDetailsToDB(title, description, author,uploadResult.Location )
 
     return res.status(200).json({
       message: "Uploaded successfully!",
@@ -135,16 +136,16 @@ export const completeUpload = async (req, res) => {
   }
 };
 
-export const uploadToDb=async (req,res)=>{
+export const uploadToDb = async (req, res) => {
   console.log("Adding details to DB");
   try {
-    const videoDetails=req.body
-    await addVideoDetailsToDB(videoDetails.title,videoDetails.description,videoDetails.author,videoDetails.url)
+    const videoDetails = req.body
+    console.log('videoDetails', videoDetails)
     return res.status(200).send("Success")
-    
+
   } catch (error) {
-    console.log("Error adding to DB");
-    return res.status(400).send(error);
-    
+    console.error("FULL ERROR:", error);
+    return res.status(400).send(error)
+
   }
 }

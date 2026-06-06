@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "../generated/prisma/index.js"
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import fs from 'fs'
@@ -18,16 +18,5 @@ export const prisma = new PrismaClient({
   adapter,
 });
 
-export async function addVideoDetailsToDB(title,description,author,url){
-    const videoData=await prisma.videoData.create({
-        data:{
-            title:title,
-            description:description,
-            author:author,
-            url:url
-        }
-    })
 
-    console.log(videoData)
-}
 

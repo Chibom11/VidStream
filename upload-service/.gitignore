@@ -1,5 +1,5 @@
 .env*
-/node_modules
+node_modules*
 ca.pem
 kafka/ca.pem
 /generated/prisma
