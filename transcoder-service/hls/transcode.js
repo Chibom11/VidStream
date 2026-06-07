@@ -54,7 +54,11 @@ const convertToHLS = async () => {
         ])
         .output(`output/${outputFileName}`)
         .on("end", () => resolve())
-        .on("error", (err) => reject(err))
+        .on("error", (err, stdout, stderr) => {
+            console.log("FFMPEG ERROR:");
+            console.log(stderr);
+            reject(err);
+            })
         .run();
     });
 
@@ -98,5 +102,7 @@ const convertToHLS = async () => {
 
   console.log("HLS master m3u8 playlist generated");
 };
+
+convertToHLS();
 
 export default convertToHLS;
