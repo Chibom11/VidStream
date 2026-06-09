@@ -7,7 +7,7 @@ const VideoPlayer = () => {
   const videoRef = useRef(null);
 
   const src =
-    
+    "https://hhld-classes.s3.ap-south-1.amazonaws.com/output/test_master.m3u8";
 
   useEffect(() => {
     const video = videoRef.current;

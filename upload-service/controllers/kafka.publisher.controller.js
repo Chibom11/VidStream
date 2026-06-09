@@ -1,8 +1,11 @@
 import KafkaConfig from "../kafka/kafka.js";
 
-export const sendMessageToKafka = async (req, res) => {
+export const pushVideoForEncodingToKafka = async (title,url) => {
     try {
-        const message = req.body;
+        const message = {
+            "title":title,
+            "url":url   
+        };
         console.log("Message: ", message);
         const kafkaconfig = new KafkaConfig();
         const msgs = [

@@ -9,6 +9,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { UploadPartCommand } from "@aws-sdk/client-s3";
 import { addVideoDetailsToDB } from "../db/db.js";
+import { pushVideoForEncodingToKafka } from "./kafka.publisher.controller.js";
 
 dotenv.config();
 const s3 = new S3Client({
@@ -122,6 +123,7 @@ export const completeUpload = async (req, res) => {
 
     console.log("uploadResult", uploadResult);
     await addVideoDetailsToDB(title, description, author,uploadResult.Location )
+    pushVideoForEncodingToKafka(title,uploadResult.Location)
 
     return res.status(200).json({
       message: "Uploaded successfully!",
