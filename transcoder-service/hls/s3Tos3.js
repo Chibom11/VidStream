@@ -15,6 +15,7 @@ import { pipeline } from "stream/promises";
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
 dotenv.config();
+console.log(process.env.AWS_BUCKET);
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -24,7 +25,7 @@ const s3 = new S3Client({
   },
 });
 
-const mp4FileName = "trial1.mp4";
+const mp4FileName = "trial.mp4";
 const bucketName = process.env.AWS_BUCKET;
 const hlsFolder = "hls";
 
@@ -42,8 +43,8 @@ const s3ToS3 = async () => {
 
     const response = await s3.send(
       new GetObjectCommand({
-        Bucket: bucketName,
-        Key: mp4FileName,
+        Bucket: process.env.AWS_BUCKET,
+        Key: 'trial',
       })
     );
 
@@ -113,7 +114,7 @@ const s3ToS3 = async () => {
             "-hls_list_size 0",
             `-hls_segment_filename hls/${segmentFileName}`,
           ])
-          .output(`hls/${outputFileName}`)
+          .output(`hls_vid/${outputFileName}`)
           .on("end", resolve)
           .on("error", reject)
           .run();
